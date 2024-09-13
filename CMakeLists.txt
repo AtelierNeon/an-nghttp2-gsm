@@ -22,9 +22,17 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.15.0)
 # XXX using 1.8.90 instead of 1.9.0-DEV
 project(nghttp2 VERSION 1.56.0)
+
+message (STATUS "nghttp2 version ${PROJECT_VERSION}")
+
+option (NGHTTP2_WITHOUT_INSTALL_ALL "Build nghttp2 without installing all artifacts." OFF)
+option (NGHTTP2_WITHOUT_INSTALL_FILES "Build nghttp2 without installing files." OFF)
+option (NGHTTP2_WITHOUT_INSTALL_HEADERS "Build nghttp2 without installing headers." OFF)
+option (NGHTTP2_WITHOUT_INSTALL_LIBRARIES "Build nghttp2 without installing libraries." OFF)
+option (NGHTTP2_WITHOUT_TEST_APPS "Build nghttp2 without test apps." OFF)
 
 # See versioning rule:
 #  https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
@@ -469,7 +477,9 @@ include_directories(
 set(PKGDATADIR "${CMAKE_INSTALL_FULL_DATADIR}/${CMAKE_PROJECT_NAME}")
 set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}")
 
-install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+if(NOT NGHTTP2_WITHOUT_INSTALL_FILES AND NOT NGHTTP2_WITHOUT_INSTALL_ALL)
+  install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+endif()
 
 add_subdirectory(lib)
 #add_subdirectory(lib/includes)
