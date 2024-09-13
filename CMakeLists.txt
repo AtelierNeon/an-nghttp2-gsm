@@ -28,6 +28,10 @@ project(nghttp2 VERSION 1.56.0)
 
 message (STATUS "nghttp2 version ${PROJECT_VERSION}")
 
+option (NGHTTP2_WITHOUT_INSTALL_ALL "Build nghttp2 without installing all artifacts." OFF)
+option (NGHTTP2_WITHOUT_INSTALL_FILES "Build nghttp2 without installing files." OFF)
+option (NGHTTP2_WITHOUT_INSTALL_HEADERS "Build nghttp2 without installing headers." OFF)
+option (NGHTTP2_WITHOUT_INSTALL_LIBRARIES "Build nghttp2 without installing libraries." OFF)
 option (NGHTTP2_WITHOUT_TEST_APPS "Build nghttp2 without test apps." OFF)
 
 # See versioning rule:
@@ -473,7 +477,9 @@ include_directories(
 set(PKGDATADIR "${CMAKE_INSTALL_FULL_DATADIR}/${CMAKE_PROJECT_NAME}")
 set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}")
 
-install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+if(NOT NGHTTP2_WITHOUT_INSTALL_FILES AND NOT NGHTTP2_WITHOUT_INSTALL_ALL)
+  install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+endif()
 
 add_subdirectory(lib)
 #add_subdirectory(lib/includes)

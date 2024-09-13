@@ -345,8 +345,10 @@ sphinxbuild(doctest
   "results in ${BUILDDIR}/doctest/output.txt."
 )
 
-foreach(_man_page IN LISTS MAN_PAGES)
-  install(FILES ${_man_page}
-    DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
-  )
-endforeach()
+if(NOT NGHTTP2_WITHOUT_INSTALL_FILES AND NOT NGHTTP2_WITHOUT_INSTALL_ALL)
+  foreach(_man_page IN LISTS MAN_PAGES)
+    install(FILES ${_man_page}
+      DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
+    )
+  endforeach()
+endif()

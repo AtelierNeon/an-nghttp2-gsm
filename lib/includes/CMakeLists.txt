@@ -1,4 +1,6 @@
-install(FILES
-    nghttp2/nghttp2.h
-    "${CMAKE_CURRENT_BINARY_DIR}/nghttp2/nghttp2ver.h"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nghttp2")
+if(NOT NGHTTP2_WITHOUT_INSTALL_HEADERS AND NOT NGHTTP2_WITHOUT_INSTALL_ALL)
+  install(FILES
+      nghttp2/nghttp2.h
+      "${CMAKE_CURRENT_BINARY_DIR}/nghttp2/nghttp2ver.h"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nghttp2")
+endif()
