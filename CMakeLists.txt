@@ -61,21 +61,21 @@ endif()
 include(GNUInstallDirs)
 
 # For documentation
-find_package(Python3 COMPONENTS Interpreter)
+find_package(Python3 QUIET COMPONENTS Interpreter)
 
 # Auto-detection of features that can be toggled
-find_package(OpenSSL 1.0.1)
-find_package(Libev 4.11)
-find_package(Libcares 1.7.5)
-find_package(ZLIB 1.2.3)
-find_package(Libngtcp2 0.0.0)
-find_package(Libngtcp2_crypto_quictls 0.0.0)
+find_package(OpenSSL QUIET 1.0.1)
+find_package(Libev QUIET 4.11)
+find_package(Libcares QUIET 1.7.5)
+find_package(ZLIB QUIET 1.2.3)
+find_package(Libngtcp2 QUIET 0.0.0)
+find_package(Libngtcp2_crypto_quictls QUIET 0.0.0)
 if(LIBNGTCP2_CRYPTO_QUICTLS_FOUND)
   set(HAVE_LIBNGTCP2_CRYPTO_QUICTLS 1)
 endif()
-find_package(Libnghttp3 0.0.0)
+find_package(Libnghttp3 QUIET 0.0.0)
 if(WITH_LIBBPF)
-  find_package(Libbpf 0.4.0)
+  find_package(Libbpf QUIET 0.4.0)
   if(NOT LIBBPF_FOUND)
     message(FATAL_ERROR "libbpf was requested (WITH_LIBBPF=1) but not found.")
   endif()
@@ -85,16 +85,16 @@ if(OPENSSL_FOUND AND LIBEV_FOUND AND ZLIB_FOUND)
 else()
   set(ENABLE_APP_DEFAULT OFF)
 endif()
-find_package(Systemd 209)
-find_package(Jansson  2.5)
+find_package(Systemd QUIET 209)
+find_package(Jansson QUIET 2.5)
 set(ENABLE_HPACK_TOOLS_DEFAULT ${JANSSON_FOUND})
 # 2.0.8 is required because we use evconnlistener_set_error_cb()
-find_package(Libevent 2.0.8 COMPONENTS core extra openssl)
+find_package(Libevent QUIET 2.0.8 COMPONENTS core extra openssl)
 set(ENABLE_EXAMPLES_DEFAULT ${LIBEVENT_OPENSSL_FOUND})
 
-find_package(LibXml2 2.6.26)
+find_package(LibXml2 QUIET 2.6.26)
 set(WITH_LIBXML2_DEFAULT    ${LIBXML2_FOUND})
-find_package(Jemalloc)
+find_package(Jemalloc QUIET)
 set(WITH_JEMALLOC_DEFAULT   ${JEMALLOC_FOUND})
 
 include(CMakeOptions.txt)
@@ -170,7 +170,7 @@ endif()
 # XXX shouldn't ${CMAKE_DL_LIBS} be appended to OPENSSL_LIBRARIES instead of
 # APP_LIBRARIES if it is really specific to OpenSSL?
 
-find_package(CUnit 2.1)
+find_package(CUnit QUIET 2.1)
 enable_testing()
 set(HAVE_CUNIT      ${CUNIT_FOUND})
 if(HAVE_CUNIT)
@@ -275,19 +275,35 @@ endif()
 
 # Checks for header files.
 include(CheckIncludeFile)
-check_include_file("arpa/inet.h"    HAVE_ARPA_INET_H)
-check_include_file("fcntl.h"        HAVE_FCNTL_H)
-check_include_file("inttypes.h"     HAVE_INTTYPES_H)
-check_include_file("limits.h"       HAVE_LIMITS_H)
-check_include_file("netdb.h"        HAVE_NETDB_H)
-check_include_file("netinet/in.h"   HAVE_NETINET_IN_H)
-check_include_file("netinet/ip.h"   HAVE_NETINET_IP_H)
-check_include_file("pwd.h"          HAVE_PWD_H)
-check_include_file("sys/socket.h"   HAVE_SYS_SOCKET_H)
-check_include_file("sys/time.h"     HAVE_SYS_TIME_H)
-check_include_file("syslog.h"       HAVE_SYSLOG_H)
-check_include_file("time.h"         HAVE_TIME_H)
-check_include_file("unistd.h"       HAVE_UNISTD_H)
+if(BUILD_WITH_COMPILER_PRECHECK AND WIN32)
+  set(HAVE_ARPA_INET_H FALSE)
+  set(HAVE_FCNTL_H TRUE)
+  set(HAVE_INTTYPES_H TRUE)
+  set(HAVE_LIMITS_H TRUE)
+  set(HAVE_NETDB_H FALSE)
+  set(HAVE_NETINET_IN_H FALSE)
+  set(HAVE_NETINET_IP_H FALSE)
+  set(HAVE_PWD_H FALSE)
+  set(HAVE_SYS_SOCKET_H FALSE)
+  set(HAVE_SYS_TIME_H FALSE)
+  set(HAVE_SYSLOG_H FALSE)
+  set(HAVE_TIME_H TRUE)
+  set(HAVE_UNISTD_H FALSE)
+else()
+  check_include_file("arpa/inet.h"    HAVE_ARPA_INET_H)
+  check_include_file("fcntl.h"        HAVE_FCNTL_H)
+  check_include_file("inttypes.h"     HAVE_INTTYPES_H)
+  check_include_file("limits.h"       HAVE_LIMITS_H)
+  check_include_file("netdb.h"        HAVE_NETDB_H)
+  check_include_file("netinet/in.h"   HAVE_NETINET_IN_H)
+  check_include_file("netinet/ip.h"   HAVE_NETINET_IP_H)
+  check_include_file("pwd.h"          HAVE_PWD_H)
+  check_include_file("sys/socket.h"   HAVE_SYS_SOCKET_H)
+  check_include_file("sys/time.h"     HAVE_SYS_TIME_H)
+  check_include_file("syslog.h"       HAVE_SYSLOG_H)
+  check_include_file("time.h"         HAVE_TIME_H)
+  check_include_file("unistd.h"       HAVE_UNISTD_H)
+endif()
 
 include(CheckTypeSize)
 # Checks for typedefs, structures, and compiler characteristics.
@@ -315,7 +331,11 @@ endif()
 # add_definitions(-D_FILE_OFFSET_BITS=64)
 
 include(CheckStructHasMember)
-check_struct_has_member("struct tm" tm_gmtoff time.h HAVE_STRUCT_TM_TM_GMTOFF)
+if(BUILD_WITH_COMPILER_PRECHECK AND WIN32)
+  set(HAVE_STRUCT_TM_TM_GMTOFF FALSE)
+else()
+  check_struct_has_member("struct tm" tm_gmtoff time.h HAVE_STRUCT_TM_TM_GMTOFF)
+endif()
 
 # Check size of pointer to decide we need 8 bytes alignment adjustment.
 check_type_size("int *"   SIZEOF_INT_P)
@@ -323,13 +343,23 @@ check_type_size("time_t"  SIZEOF_TIME_T)
 
 # Checks for library functions.
 include(CheckFunctionExists)
-check_function_exists(_Exit     HAVE__EXIT)
-check_function_exists(accept4   HAVE_ACCEPT4)
-check_function_exists(mkostemp  HAVE_MKOSTEMP)
+if(BUILD_WITH_COMPILER_PRECHECK AND WIN32)
+  set(HAVE__EXIT TRUE)
+  set(HAVE_ACCEPT4 FALSE)
+  set(HAVE_MKOSTEMP FALSE)
+else()
+  check_function_exists(_Exit     HAVE__EXIT)
+  check_function_exists(accept4   HAVE_ACCEPT4)
+  check_function_exists(mkostemp  HAVE_MKOSTEMP)
+endif()
 
 include(CheckSymbolExists)
 # XXX does this correctly detect initgroups (un)availability on cygwin?
-check_symbol_exists(initgroups grp.h HAVE_DECL_INITGROUPS)
+if(BUILD_WITH_COMPILER_PRECHECK AND WIN32)
+  set(HAVE_DECL_INITGROUPS FALSE)
+else()
+  check_symbol_exists(initgroups grp.h HAVE_DECL_INITGROUPS)
+endif()
 if(NOT HAVE_DECL_INITGROUPS AND HAVE_UNISTD_H)
   # FreeBSD declares initgroups() in unistd.h
   check_symbol_exists(initgroups unistd.h HAVE_DECL_INITGROUPS2)
@@ -498,51 +528,51 @@ add_subdirectory(bpf)
 
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _build_type)
-message(STATUS "summary of build options:
-
-    Package version: ${VERSION}
-    Library version: ${LT_CURRENT}:${LT_REVISION}:${LT_AGE}
-    Install prefix:  ${CMAKE_INSTALL_PREFIX}
-    Target system:   ${CMAKE_SYSTEM_NAME}
-    Compiler:
-      Build type:     ${CMAKE_BUILD_TYPE}
-      C compiler:     ${CMAKE_C_COMPILER}
-      CFLAGS:         ${CMAKE_C_FLAGS_${_build_type}} ${CMAKE_C_FLAGS}
-      C++ compiler:   ${CMAKE_CXX_COMPILER}
-      CXXFLAGS:       ${CMAKE_CXX_FLAGS_${_build_type}} ${CMAKE_CXX_FLAGS}
-      WARNCFLAGS:     ${WARNCFLAGS}
-      CXX1XCXXFLAGS:  ${CXX1XCXXFLAGS}
-    Python:
-      Python:          ${Python3_EXECUTABLE}
-      Python3_VERSION: ${Python3_VERSION}
-    Test:
-      CUnit:          ${HAVE_CUNIT} (LIBS='${CUNIT_LIBRARIES}')
-      Failmalloc:     ${ENABLE_FAILMALLOC}
-    Libs:
-      OpenSSL:        ${HAVE_OPENSSL} (LIBS='${OPENSSL_LIBRARIES}')
-      Libxml2:        ${HAVE_LIBXML2} (LIBS='${LIBXML2_LIBRARIES}')
-      Libev:          ${HAVE_LIBEV} (LIBS='${LIBEV_LIBRARIES}')
-      Libc-ares:      ${HAVE_LIBCARES} (LIBS='${LIBCARES_LIBRARIES}')
-      Libngtcp2:      ${HAVE_LIBNGTCP2} (LIBS='${LIBNGTCP2_LIBRARIES}')
-      Libngtcp2_crypto_quictls: ${HAVE_LIBNGTCP2_CRYPTO_QUICTLS} (LIBS='${LIBNGTCP2_CRYPTO_QUICTLS_LIBRARIES}')
-      Libnghttp3:     ${HAVE_LIBNGHTTP3} (LIBS='${LIBNGHTTP3_LIBRARIES}')
-      Libbpf:         ${HAVE_LIBBPF} (LIBS='${LIBBPF_LIBRARIES}')
-      Libevent(SSL):  ${HAVE_LIBEVENT_OPENSSL} (LIBS='${LIBEVENT_OPENSSL_LIBRARIES}')
-      Jansson:        ${HAVE_JANSSON} (LIBS='${JANSSON_LIBRARIES}')
-      Jemalloc:       ${HAVE_JEMALLOC} (LIBS='${JEMALLOC_LIBRARIES}')
-      Zlib:           ${HAVE_ZLIB} (LIBS='${ZLIB_LIBRARIES}')
-      Systemd:        ${HAVE_SYSTEMD} (LIBS='${SYSTEMD_LIBRARIES}')
-    Third-party:
-      http-parser:    ${ENABLE_THIRD_PARTY}
-      MRuby:          ${HAVE_MRUBY}
-      Neverbleed:     ${HAVE_NEVERBLEED}
-    Features:
-      Applications:   ${ENABLE_APP}
-      HPACK tools:    ${ENABLE_HPACK_TOOLS}
-      Examples:       ${ENABLE_EXAMPLES}
-      Threading:      ${ENABLE_THREADS}
-      HTTP/3(EXPERIMENTAL): ${ENABLE_HTTP3}
-")
+#message(STATUS "summary of build options:
+#
+#    Package version: ${VERSION}
+#    Library version: ${LT_CURRENT}:${LT_REVISION}:${LT_AGE}
+#    Install prefix:  ${CMAKE_INSTALL_PREFIX}
+#    Target system:   ${CMAKE_SYSTEM_NAME}
+#    Compiler:
+#      Build type:     ${CMAKE_BUILD_TYPE}
+#      C compiler:     ${CMAKE_C_COMPILER}
+#      CFLAGS:         ${CMAKE_C_FLAGS_${_build_type}} ${CMAKE_C_FLAGS}
+#      C++ compiler:   ${CMAKE_CXX_COMPILER}
+#      CXXFLAGS:       ${CMAKE_CXX_FLAGS_${_build_type}} ${CMAKE_CXX_FLAGS}
+#      WARNCFLAGS:     ${WARNCFLAGS}
+#      CXX1XCXXFLAGS:  ${CXX1XCXXFLAGS}
+#    Python:
+#      Python:          ${Python3_EXECUTABLE}
+#      Python3_VERSION: ${Python3_VERSION}
+#    Test:
+#      CUnit:          ${HAVE_CUNIT} (LIBS='${CUNIT_LIBRARIES}')
+#      Failmalloc:     ${ENABLE_FAILMALLOC}
+#    Libs:
+#      OpenSSL:        ${HAVE_OPENSSL} (LIBS='${OPENSSL_LIBRARIES}')
+#      Libxml2:        ${HAVE_LIBXML2} (LIBS='${LIBXML2_LIBRARIES}')
+#      Libev:          ${HAVE_LIBEV} (LIBS='${LIBEV_LIBRARIES}')
+#      Libc-ares:      ${HAVE_LIBCARES} (LIBS='${LIBCARES_LIBRARIES}')
+#      Libngtcp2:      ${HAVE_LIBNGTCP2} (LIBS='${LIBNGTCP2_LIBRARIES}')
+#      Libngtcp2_crypto_quictls: ${HAVE_LIBNGTCP2_CRYPTO_QUICTLS} (LIBS='${LIBNGTCP2_CRYPTO_QUICTLS_LIBRARIES}')
+#      Libnghttp3:     ${HAVE_LIBNGHTTP3} (LIBS='${LIBNGHTTP3_LIBRARIES}')
+#      Libbpf:         ${HAVE_LIBBPF} (LIBS='${LIBBPF_LIBRARIES}')
+#      Libevent(SSL):  ${HAVE_LIBEVENT_OPENSSL} (LIBS='${LIBEVENT_OPENSSL_LIBRARIES}')
+#      Jansson:        ${HAVE_JANSSON} (LIBS='${JANSSON_LIBRARIES}')
+#      Jemalloc:       ${HAVE_JEMALLOC} (LIBS='${JEMALLOC_LIBRARIES}')
+#      Zlib:           ${HAVE_ZLIB} (LIBS='${ZLIB_LIBRARIES}')
+#      Systemd:        ${HAVE_SYSTEMD} (LIBS='${SYSTEMD_LIBRARIES}')
+#    Third-party:
+#      http-parser:    ${ENABLE_THIRD_PARTY}
+#      MRuby:          ${HAVE_MRUBY}
+#      Neverbleed:     ${HAVE_NEVERBLEED}
+#    Features:
+#      Applications:   ${ENABLE_APP}
+#      HPACK tools:    ${ENABLE_HPACK_TOOLS}
+#      Examples:       ${ENABLE_EXAMPLES}
+#      Threading:      ${ENABLE_THREADS}
+#      HTTP/3(EXPERIMENTAL): ${ENABLE_HTTP3}
+#")
 if(ENABLE_LIB_ONLY_DISABLED_OTHERS)
   message("Only the library will be built. To build other components "
     "(such as applications and examples), set ENABLE_LIB_ONLY=OFF.")
